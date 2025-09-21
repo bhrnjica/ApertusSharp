@@ -11,6 +11,7 @@ ApertusSharp is a modern .NET client for [Swis-AI](https://swis-ai.ch)'s Apertus
 - 🧪 Minimal, testable, simple .NET code
 - 🧰 Ready for DI registration and service composition
 
+
 ## 📦 Installation
 
 Install via NuGet:
@@ -24,6 +25,7 @@ Or via Package Manager Console in Visual Studio:
 ```
 Install-Package ApertusSharp
 ```
+
 
 ## 🚀 Quick Start
 List Available models:
@@ -67,8 +69,39 @@ await foreach (var chunk in apertus.GetStreamingResponseAsync(messages))
 	Console.Write(chunk);
 }
 Console.WriteLine("\n Streaming complete.");
-
 ```
+
+
+## 🔌 Semantic Kernel Integration
+
+ApertusSharp can be used as a custom `IChatClient` for Semantic Kernel:
+
+```csharp
+// Create a Semantic Kernel builder
+var builder = Kernel.CreateBuilder();
+
+// Register Apertus as a chat client service
+builder.Services.AddApertusChatClient(apiKey: apiKey, model: "swiss-ai/apertus-8b-instruct");
+
+var kernel = builder.Build();
+
+// Use the kernel to get a chat completion
+var chat = kernel.GetRequiredService<IChatClient>();
+
+var msg = "How does Semantic Kernel work with Apertus?";
+Console.WriteLine("User: " + msg);
+
+var history = new List<ChatMessage>
+    {
+        new ChatMessage(ChatRole.User, msg)
+    };
+
+var result = await chat.GetResponseAsync(history);
+
+Console.WriteLine("AI: " + result.Text);
+```
+
+
 
 ## Usage in Jupyter Notebooks
 
@@ -104,35 +137,6 @@ Console.WriteLine(response);
 - Use `display()` function to render rich outputs
 - Break complex workflows into multiple cells for better interactivity
 - Leverage async/await for responsive notebook experience
-
-## 🔌 Semantic Kernel Integration
-
-ApertusSharp can be used as a custom `IChatClient` for Semantic Kernel:
-
-```csharp
-// Create a Semantic Kernel builder
-var builder = Kernel.CreateBuilder();
-
-// Register Apertus as a chat client service
-builder.Services.AddApertusChatClient(apiKey: apiKey, model: "swiss-ai/apertus-8b-instruct");
-
-var kernel = builder.Build();
-
-// Use the kernel to get a chat completion
-var chat = kernel.GetRequiredService<IChatClient>();
-
-var msg = "How does Semantic Kernel work with Apertus?";
-Console.WriteLine("User: " + msg);
-
-var history = new List<ChatMessage>
-    {
-        new ChatMessage(ChatRole.User, msg)
-    };
-
-var result = await chat.GetResponseAsync(history);
-
-Console.WriteLine("AI: " + result.Text);
-```
 
 ## 🧱 Architecture
 
