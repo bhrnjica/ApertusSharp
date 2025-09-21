@@ -29,7 +29,7 @@ Install-Package ApertusSharp
 
 ## 🚀 Quick Start
 
-### List Available models:
+### List available models:
 
 ```csharp
 
@@ -38,7 +38,7 @@ var models = await apertus.ListModelsAsync();
 Console.WriteLine($"Available models: {string.Join(", ", models.Select(m => m.Id))}");
 ```
 
-### Create the Apertus chat client:
+### Create the apertus chat client:
 
 ```csharp
 var apertus = new ApertusClient(model:"swiss-ai/apertus-8b-instruct", apiKey:apiKey);
@@ -74,7 +74,7 @@ Console.WriteLine("\n Streaming complete.");
 ```
 
 
-## 🔌 Semantic Kernel Integration
+## 🔌 Semantic kernel integration
 
 ApertusSharp can be used as a custom `IChatClient` for Semantic Kernel:
 
@@ -105,7 +105,7 @@ Console.WriteLine("AI: " + result.Text);
 
 
 
-## Usage in Jupyter Notebooks
+## Usage in jupyter notebooks
 
 **Cell 1 - Install ApertusSharp package:**
 ```csharp
@@ -133,7 +133,7 @@ var response = await apertus.GetResponseAsync("Explain quantum computing in simp
 Console.WriteLine(response);
 ```
 
-### Tips for Jupyter Notebooks
+### Tips for jupyter jotebooks
 
 - Set your API key as an environment variable for security: `Environment.GetEnvironmentVariable("APERTUS_TOKEN")`
 - Use `display()` function to render rich outputs
