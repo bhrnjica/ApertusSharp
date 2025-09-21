@@ -28,7 +28,9 @@ Install-Package ApertusSharp
 
 
 ## 🚀 Quick Start
-List Available models:
+
+### List Available models:
+
 ```csharp
 
 var apertus = new ApertusClient(apiKey);
@@ -36,7 +38,7 @@ var models = await apertus.ListModelsAsync();
 Console.WriteLine($"Available models: {string.Join(", ", models.Select(m => m.Id))}");
 ```
 
-Create the Apertus chat client:
+### Create the Apertus chat client:
 
 ```csharp
 var apertus = new ApertusClient(model:"swiss-ai/apertus-8b-instruct", apiKey:apiKey);
@@ -45,7 +47,7 @@ await foreach (var stream in apertus.GenerateAsync("How are you today?"))
 	Console.Write(stream.Text);
 ```
 
-Use it as service extension:
+### Use it as service extension:
 
 ```csharp
 var services = new ServiceCollection();
