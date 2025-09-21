@@ -26,59 +26,51 @@ Install-Package ApertusSharp
 ```
 
 ## 🚀 Quick Start
+List Available models:
+```csharp
 
-Register the Apertus client:
+var apertus = new ApertusClient(apiKey);
+var models = await apertus.ListModelsAsync();
+Console.WriteLine($"Available models: {string.Join(", ", models.Select(m => m.Id))}");
+```
+
+Create the Apertus chat client:
 
 ```csharp
-services.AddApertusChatClient(options =>
+var apertus = new ApertusClient(model:"swiss-ai/apertus-8b-instruct", apiKey:apiKey);
+
+await foreach (var stream in apertus.GenerateAsync("How are you today?"))
+	Console.Write(stream.Text);
+```
+
+Use it as service extension:
+
+```csharp
+var services = new ServiceCollection();
+services.AddApertusChatClient(apiKey: apiKey, model: "swiss-ai/apertus-8b-instruct");
+
+await using var provider = services.BuildServiceProvider(new ServiceProviderOptions
 {
-    options.Endpoint = "https://api.publicai.co"; // Apertus API endpoint
-    options.ApiKey = configuration["SwisAI:ApiKey"];
-    options.Model = "swiss-ai/apertus-8b-instruct";
+	ValidateScopes = true,
+	ValidateOnBuild = true
 });
-```
+var apertus = provider.GetRequiredService<ApertusClient>();
 
-Use it in your service:
+var messages = new List<ChatMessage>
+	{
+		new ChatMessage(ChatRole.User, "Hello from ServiceCollection!")
+	};
 
-```csharp
-public class ChatService
+Console.Write("AI: ");
+await foreach (var chunk in apertus.GetStreamingResponseAsync(messages))
 {
-    private readonly IChatClient _chatClient;
-
-    public ChatService(IChatClient chatClient)
-    {
-        _chatClient = chatClient;
-    }
-
-    public async Task<string> AskAsync(string prompt)
-    {
-        var response = await _chatClient.GetResponseAsync(new[] { new ChatMessage(ChatRole.User, prompt) });
-        return response.Messages.FirstOrDefault()?.Text ?? string.Empty;
-    }
+	Console.Write(chunk);
 }
+Console.WriteLine("\n Streaming complete.");
+
 ```
 
-## 📓 Jupyter Notebook Integration
-
-ApertusSharp can be used seamlessly in Jupyter Notebooks with the .NET Interactive kernel. This enables interactive data science and AI exploration workflows.
-
-### Setup
-
-1. **Install .NET Interactive kernel for Jupyter:**
-   ```bash
-   dotnet tool install -g Microsoft.dotnet-interactive
-   dotnet interactive jupyter install
-   ```
-
-2. **Start Jupyter and create a new C# notebook:**
-   ```bash
-   jupyter notebook
-   # or use Jupyter Lab for a more modern interface
-   jupyter lab
-   ```
-   Select "C#" as the kernel when creating a new notebook.
-
-### Usage in Jupyter Notebooks
+## Usage in Jupyter Notebooks
 
 **Cell 1 - Install ApertusSharp package:**
 ```csharp
@@ -106,25 +98,6 @@ var response = await apertus.GetResponseAsync("Explain quantum computing in simp
 Console.WriteLine(response);
 ```
 
-**Cell 5 - Streaming response:**
-```csharp
-Console.Write("AI: ");
-await foreach (var chunk in apertus.GetStreamingResponseAsync("Tell me a short story about AI"))
-{
-    Console.Write(chunk);
-}
-Console.WriteLine();
-```
-
-**Cell 6 - List available models:**
-```csharp
-var models = await apertus.ListModelsAsync();
-foreach (var model in models)
-{
-    Console.WriteLine($"- {model.Id} (owned by {model.OwnedBy})");
-}
-```
-
 ### Tips for Jupyter Notebooks
 
 - Set your API key as an environment variable for security: `Environment.GetEnvironmentVariable("APERTUS_TOKEN")`
@@ -137,10 +110,28 @@ foreach (var model in models)
 ApertusSharp can be used as a custom `IChatClient` for Semantic Kernel:
 
 ```csharp
-builder.Services.AddSingleton<IChatClient, ApertusChatCompletionService>();
+// Create a Semantic Kernel builder
+var builder = Kernel.CreateBuilder();
 
-// Or register directly via DI extensions
-builder.Services.AddApertusChatClient(apiKey: "your-api-key");
+// Register Apertus as a chat client service
+builder.Services.AddApertusChatClient(apiKey: apiKey, model: "swiss-ai/apertus-8b-instruct");
+
+var kernel = builder.Build();
+
+// Use the kernel to get a chat completion
+var chat = kernel.GetRequiredService<IChatClient>();
+
+var msg = "How does Semantic Kernel work with Apertus?";
+Console.WriteLine("User: " + msg);
+
+var history = new List<ChatMessage>
+    {
+        new ChatMessage(ChatRole.User, msg)
+    };
+
+var result = await chat.GetResponseAsync(history);
+
+Console.WriteLine("AI: " + result.Text);
 ```
 
 ## 🧱 Architecture
@@ -152,7 +143,7 @@ builder.Services.AddApertusChatClient(apiKey: "your-api-key");
 
 ## 📚 Documentation
 
-- [Swis-AI Apertus API](https://swis-ai.ch/docs)
+- [Swis-AI Apertus API](https://platform.publicai.co/api)
 - [.NET AI SDK](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.ai)
 - [Semantic Kernel](https://aka.ms/semantic-kernel)
 
