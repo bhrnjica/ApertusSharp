@@ -23,6 +23,17 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+	<PackageReleaseNotes>
+		Initial preview release.
+		- Core chat and streaming APIs for Apertus LLM
+		- .NET 8 support
+		- Integration with Microsoft.Extensions.AI and Semantic Kernel
+	</PackageReleaseNotes>
+
+	<Copyright>
+		Copyright © 2025 Bahrudin Hrnjica
+	</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
