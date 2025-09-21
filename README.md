@@ -58,6 +58,80 @@ public class ChatService
 }
 ```
 
+## 📓 Jupyter Notebook Integration
+
+ApertusSharp can be used seamlessly in Jupyter Notebooks with the .NET Interactive kernel. This enables interactive data science and AI exploration workflows.
+
+### Setup
+
+1. **Install .NET Interactive kernel for Jupyter:**
+   ```bash
+   dotnet tool install -g Microsoft.dotnet-interactive
+   dotnet interactive jupyter install
+   ```
+
+2. **Start Jupyter and create a new C# notebook:**
+   ```bash
+   jupyter notebook
+   # or use Jupyter Lab for a more modern interface
+   jupyter lab
+   ```
+   Select "C#" as the kernel when creating a new notebook.
+
+### Usage in Jupyter Notebooks
+
+**Cell 1 - Install ApertusSharp package:**
+```csharp
+#r "nuget: ApertusSharp"
+```
+
+**Cell 2 - Import namespaces:**
+```csharp
+using ApertusSharp;
+using Microsoft.Extensions.AI;
+```
+
+**Cell 3 - Initialize the client:**
+```csharp
+var apiKey = "your-api-key-here"; // Replace with your actual API key
+var apertus = new ApertusClient(
+    apiKey: apiKey,
+    model: "swiss-ai/apertus-8b-instruct"
+);
+```
+
+**Cell 4 - Simple chat interaction:**
+```csharp
+var response = await apertus.GetResponseAsync("Explain quantum computing in simple terms");
+Console.WriteLine(response);
+```
+
+**Cell 5 - Streaming response:**
+```csharp
+Console.Write("AI: ");
+await foreach (var chunk in apertus.GetStreamingResponseAsync("Tell me a short story about AI"))
+{
+    Console.Write(chunk);
+}
+Console.WriteLine();
+```
+
+**Cell 6 - List available models:**
+```csharp
+var models = await apertus.ListModelsAsync();
+foreach (var model in models)
+{
+    Console.WriteLine($"- {model.Id} (owned by {model.OwnedBy})");
+}
+```
+
+### Tips for Jupyter Notebooks
+
+- Set your API key as an environment variable for security: `Environment.GetEnvironmentVariable("APERTUS_TOKEN")`
+- Use `display()` function to render rich outputs
+- Break complex workflows into multiple cells for better interactivity
+- Leverage async/await for responsive notebook experience
+
 ## 🔌 Semantic Kernel Integration
 
 ApertusSharp can be used as a custom `IChatClient` for Semantic Kernel:
