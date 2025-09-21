@@ -4,6 +4,7 @@ using ApertusSharp;
 using ApertusSharp.Entities;
 using Microsoft.Extensions.AI;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -91,6 +92,22 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 	}
 
 	/// <summary>
+	/// Simple string-based chat completion for convenience.
+	/// </summary>
+	/// <param name="prompt">The user prompt</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>The assistant's response as a string</returns>
+	public async Task<string> GetResponseAsync(string prompt, CancellationToken cancellationToken = default)
+	{
+		if (string.IsNullOrWhiteSpace(prompt))
+			throw new ArgumentException("Prompt cannot be null or empty.", nameof(prompt));
+
+		var messages = new[] { new ChatMessage(ChatRole.User, prompt) };
+		var response = await GetResponseAsync(messages, null, cancellationToken);
+		return response.Messages.FirstOrDefault()?.Text ?? string.Empty;
+	}
+
+	/// <summary>
 	/// Equivalent to:
 	/// 
 	/// curl --request POST \
@@ -158,6 +175,24 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 			yield return update;
 		}
 	}
+
+	/// <summary>
+	/// Simple string-based streaming chat completion for convenience.
+	/// </summary>
+	/// <param name="prompt">The user prompt</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>Streaming text updates</returns>
+	public async IAsyncEnumerable<string> GetStreamingResponseAsync(string prompt, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+	{
+		if (string.IsNullOrWhiteSpace(prompt))
+			throw new ArgumentException("Prompt cannot be null or empty.", nameof(prompt));
+
+		var messages = new[] { new ChatMessage(ChatRole.User, prompt) };
+		await foreach (var update in GetStreamingResponseAsync(messages, null, cancellationToken))
+		{
+			yield return update.Text ?? string.Empty;
+		}
+	}
 	/// <summary>
 	/// List available models from the Apertus API.
 	/// Equivalent to:
@@ -201,7 +236,7 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 	public object? GetService(Type serviceType, object? serviceKey = null) => null;
 	public void Dispose()
 	{
-		throw new NotImplementedException();
+		_httpClient?.Dispose();
 	}
 	private HttpRequestMessage CreateChatRequest(object payload)
 	{
