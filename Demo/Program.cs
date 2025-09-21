@@ -13,11 +13,11 @@ class Program
 {
 	static async Task Main(string[] args)
 	{
-		//await UserBasicApertusFeatures(args);
+		await UserBasicApertusFeatures(args);
 
 		//await UseServiceCollectionWithApertusFeatures(args);
 
-		await UserApertusInSemantickernel(args);
+		//await UserApertusInSemantickernel(args);
 	}
 
 
@@ -31,7 +31,7 @@ class Program
 		}
 
 		var apertus = new ApertusClient(
-			apiKey: "zpka_804c882501e2488aa5cf135953919738_78c61f8d",
+			apiKey: apiKey,
 			model: "swiss-ai/apertus-8b-instruct"
 		);
 
