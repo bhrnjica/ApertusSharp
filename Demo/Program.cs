@@ -13,9 +13,9 @@ class Program
 {
 	static async Task Main(string[] args)
 	{
-		await CreateApertusChatClient();
+		//await CreateApertusChatClient();
 
-		//await UserBasicApertusFeatures(args);
+		await UserBasicApertusFeatures(args);
 
 		//await UseServiceCollectionWithApertusFeatures(args);
 
@@ -50,10 +50,11 @@ class Program
 			model: "swiss-ai/apertus-8b-instruct"
 		);
 
-
+		var msg = "Hello!";
+		Console.WriteLine("User: " + msg);
 		var messages = new List<ChatMessage>
 		{
-			new ChatMessage(ChatRole.User, "Hello!")
+			new ChatMessage(ChatRole.User, msg)
 		};
 
 		if (args.Contains("stream"))
@@ -85,7 +86,7 @@ class Program
 		//Use simple chat interface
 		if (args.Contains("simple"))
 		{
-			var msg = "Hello, how are you?";
+			msg = "Hello, how are you?";
 			Console.WriteLine("User: " + msg);
 			var response = await apertus.GetResponseAsync(msg);
 			Console.WriteLine("AI: " + response);

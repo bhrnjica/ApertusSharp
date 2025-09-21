@@ -8,12 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ApertusSharp" Version="0.1.0-preview01" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.65.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\src\ApertusSharp\ApertusSharp.csproj" />
   </ItemGroup>
 
 </Project>
