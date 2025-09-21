@@ -3,7 +3,7 @@ using ApertusSharp;
 namespace ApertusTest;
 
 
-public class UnitTest1
+public class ApertusApiTest
 {
 	[Fact]
 	public async Task Test_Returs_List_Of_Models()

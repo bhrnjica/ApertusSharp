@@ -7,7 +7,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>ApertusSharp</PackageId>
-    <Version>1.0.0</Version>
+    <Version>0.1.0-preview01</Version>
     <Authors>Bahrudin Hrnjica</Authors>
     <Company>Bahrudin Hrnjica</Company>
     <Description>A modern .NET client for Swis-AI's Apertus LLM — built on Microsoft.Extensions.AI with full support for Semantic Kernel and custom chat pipelines. Designed for clean integration, simple usage, and flexible composition in .NET applications.</Description>
