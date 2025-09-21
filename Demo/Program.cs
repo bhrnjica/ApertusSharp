@@ -13,13 +13,28 @@ class Program
 {
 	static async Task Main(string[] args)
 	{
-		await UserBasicApertusFeatures(args);
+		await CreateApertusChatClient();
+
+		//await UserBasicApertusFeatures(args);
 
 		//await UseServiceCollectionWithApertusFeatures(args);
 
 		//await UserApertusInSemantickernel(args);
 	}
 
+	private static async Task CreateApertusChatClient()
+	{
+		var apiKey = Environment.GetEnvironmentVariable("APERTUS_TOKEN");
+		if (string.IsNullOrEmpty(apiKey))
+		{
+			Console.WriteLine("❌ Please set the APERTUS_TOKEN environment variable.");
+			return;
+		}
+		var apertus = new ApertusClient(model: "swiss-ai/apertus-8b-instruct", apiKey: apiKey);
+
+		await foreach (var stream in apertus.GenerateAsync("How are you today?"))
+			Console.Write(stream.Text);
+	}
 
 	private static async Task UserBasicApertusFeatures(string[] args)
 	{
@@ -31,7 +46,7 @@ class Program
 		}
 
 		var apertus = new ApertusClient(
-			apiKey: apiKey,
+			apiKey: apiKey,//Obtain your Apertus app key from https://platform.publicai.co/
 			model: "swiss-ai/apertus-8b-instruct"
 		);
 
@@ -125,9 +140,6 @@ class Program
 			Console.WriteLine("❌ Please set the APERTUS_TOKEN environment variable.");
 			return;
 		}
-
-		// Create ApertusClient
-		var apertus = new ApertusClient(apiKey: apiKey,	model: "swiss-ai/apertus-8b-instruct");
 
 		// Create a Semantic Kernel builder
 		var builder = Kernel.CreateBuilder();
