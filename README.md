@@ -13,10 +13,16 @@ ApertusSharp is a modern .NET client for [Swis-AI](https://swis-ai.ch)'s Apertus
 
 ## 📦 Installation
 
-Coming soon via NuGet. For now, clone the repo:
+Install via NuGet:
 
 ```bash
-git clone https://github.com/your-username/ApertusSharp.git
+dotnet add package ApertusSharp
+```
+
+Or via Package Manager Console in Visual Studio:
+
+```
+Install-Package ApertusSharp
 ```
 
 ## 🚀 Quick Start
@@ -26,8 +32,9 @@ Register the Apertus client:
 ```csharp
 services.AddApertusChatClient(options =>
 {
-    options.Endpoint = "https://api.swis-ai.ch/apertus";
+    options.Endpoint = "https://api.publicai.co"; // Apertus API endpoint
     options.ApiKey = configuration["SwisAI:ApiKey"];
+    options.Model = "swiss-ai/apertus-8b-instruct";
 });
 ```
 
@@ -45,24 +52,27 @@ public class ChatService
 
     public async Task<string> AskAsync(string prompt)
     {
-        var response = await _chatClient.GetChatCompletionAsync(prompt);
-        return response.Content;
+        var response = await _chatClient.GetResponseAsync(new[] { new ChatMessage(ChatRole.User, prompt) });
+        return response.Messages.FirstOrDefault()?.Text ?? string.Empty;
     }
 }
 ```
 
 ## 🔌 Semantic Kernel Integration
 
-ApertusSharp can be used as a custom `IChatCompletionService` for Semantic Kernel:
+ApertusSharp can be used as a custom `IChatClient` for Semantic Kernel:
 
 ```csharp
-builder.Services.AddSingleton<IChatCompletionService, ApertusChatCompletionService>();
+builder.Services.AddSingleton<IChatClient, ApertusChatCompletionService>();
+
+// Or register directly via DI extensions
+builder.Services.AddApertusChatClient(apiKey: "your-api-key");
 ```
 
 ## 🧱 Architecture
 
 - `IChatClient` and `IChatCompletionService` abstractions
-- Streaming via `IAsyncEnumerable<ChatMessage>`
+- Streaming via `IAsyncEnumerable<ChatResponseUpdate>`
 - Extensible options via `ApertusChatOptions`
 - Designed for clean DI and modular composition
 
@@ -79,8 +89,3 @@ Pull requests welcome! Please open an issue first for major changes.
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE) for details.
-```
-
----
-
-Let me know if you'd like me to generate a matching `Directory.Build.props`, `Program.cs`, or DI extension class next. I can also help scaffold the Semantic Kernel adapter.

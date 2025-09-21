@@ -4,12 +4,17 @@ using ApertusSharp;
 using ApertusSharp.Entities;
 using Microsoft.Extensions.AI;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
+/// <summary>
+/// Client for the Apertus LLM API implementing Microsoft.Extensions.AI abstractions.
+/// Provides chat completion capabilities with both streaming and non-streaming modes.
+/// </summary>
 public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 {
 	private readonly HttpClient _httpClient;
@@ -20,6 +25,13 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 	private readonly string _chatEndpoint = "/chat/completions";
 	private readonly string _modelsEndpoint = "/models";
 
+	/// <summary>
+	/// Initializes a new instance of the ApertusClient with specific model.
+	/// </summary>
+	/// <param name="model">The model to use for completions</param>
+	/// <param name="apiKey">The API key for authentication</param>
+	/// <param name="endpoint">The API endpoint (default: https://api.publicai.co)</param>
+	/// <param name="httpClient">Optional HttpClient instance</param>
 	public ApertusClient(string model, string apiKey, string endpoint = "https://api.publicai.co", HttpClient? httpClient = null)
 	{
 		_apiKey = apiKey;
@@ -33,36 +45,25 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 		_httpClient.DefaultRequestHeaders.Add("User-Agent", "ApertusSharp/1.0");
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the ApertusClient with default model.
+	/// </summary>
+	/// <param name="apiKey">The API key for authentication</param>
+	/// <param name="endpoint">The API endpoint (default: https://api.publicai.co)</param>
+	/// <param name="httpClient">Optional HttpClient instance</param>
 	public ApertusClient(string apiKey, string endpoint = "https://api.publicai.co", HttpClient? httpClient = null)
 		: this(string.Empty, apiKey, endpoint, httpClient)
 	{
 	}
 
 	/// <summary>
-	/// Equivalent to:
-	/// 
-	/// curl --request POST \
-	///     --url https://api.publicai.co/v1/chat/completions \
-	///     --header 'Authorization: <string>' \
-	///     --header 'Content-Type: application/json' \
-	///     --header 'User-Agent: <string>' \
-	///     --data '
-	///   {
-	///     "model": "swiss-ai/apertus-8b-instruct",
-	///     "messages": [
-	///       {
-	///         "role": "user",
-	///         "content": "Hello!"
-	///   
-	///   	}
-	///     ]
-	///   }
-	///   '
+	/// Gets a chat response from the Apertus API.
+	/// Sends messages to the chat completion endpoint and returns the response.
 	/// </summary>
-	/// <param name="messages"></param>
-	/// <param name="options"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="messages">The messages to send</param>
+	/// <param name="options">Optional chat options</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>The chat response</returns>
 	public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		var payload = new
@@ -91,30 +92,29 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 	}
 
 	/// <summary>
-	/// Equivalent to:
-	/// 
-	/// curl --request POST \
-	///     --url https://api.publicai.co/v1/chat/completions \
-	///     --header 'Authorization: <string>' \
-	///     --header 'Content-Type: application/json' \
-	///     --header 'User-Agent: <string>' \
-	///     --data '
-	///   {
-	///     "model": "swiss-ai/apertus-8b-instruct",
-	///     "messages": [
-	///       {
-	///         "role": "user",
-	///         "content": "Hello!"
-	///   
-	///   	}
-	///     ]
-	///   }
-	///   '
+	/// Simple string-based chat completion for convenience.
 	/// </summary>
-	/// <param name="messages"></param>
-	/// <param name="options"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="prompt">The user prompt</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>The assistant's response as a string</returns>
+	public async Task<string> GetResponseAsync(string prompt, CancellationToken cancellationToken = default)
+	{
+		if (string.IsNullOrWhiteSpace(prompt))
+			throw new ArgumentException("Prompt cannot be null or empty.", nameof(prompt));
+
+		var messages = new[] { new ChatMessage(ChatRole.User, prompt) };
+		var response = await GetResponseAsync(messages, null, cancellationToken);
+		return response.Messages.FirstOrDefault()?.Text ?? string.Empty;
+	}
+
+	/// <summary>
+	/// Gets streaming chat response updates from the Apertus API.
+	/// Sends messages and returns streaming updates as they arrive.
+	/// </summary>
+	/// <param name="messages">The messages to send</param>
+	/// <param name="options">Optional chat options</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>Streaming chat response updates</returns>
 	public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
 		var payload = new
@@ -135,6 +135,12 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 			yield return update;
 		}
 	}
+	/// <summary>
+	/// Generates streaming chat response updates for a simple text prompt.
+	/// </summary>
+	/// <param name="prompt">The user prompt</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>Streaming chat response updates</returns>
 	public async IAsyncEnumerable<ChatResponseUpdate> GenerateAsync(string prompt, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
 		if (string.IsNullOrWhiteSpace(prompt))
@@ -158,14 +164,29 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 			yield return update;
 		}
 	}
+
 	/// <summary>
-	/// List available models from the Apertus API.
-	/// Equivalent to:
-	/// curl --request GET \
-	///      --url https://api.publicai.co/v1/models \
-	///      --header 'Authorization: <string>' \
-	///      --header 'User-Agent: <string>'
+	/// Simple string-based streaming chat completion for convenience.
 	/// </summary>
+	/// <param name="prompt">The user prompt</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>Streaming text updates</returns>
+	public async IAsyncEnumerable<string> GetStreamingResponseAsync(string prompt, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+	{
+		if (string.IsNullOrWhiteSpace(prompt))
+			throw new ArgumentException("Prompt cannot be null or empty.", nameof(prompt));
+
+		var messages = new[] { new ChatMessage(ChatRole.User, prompt) };
+		await foreach (var update in GetStreamingResponseAsync(messages, null, cancellationToken))
+		{
+			yield return update.Text ?? string.Empty;
+		}
+	}
+	/// <summary>
+	/// Lists available models from the Apertus API.
+	/// </summary>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>Collection of available models</returns>
 	public async Task<IEnumerable<Model>> ListModelsAsync(CancellationToken cancellationToken = default)
 	{
 		var request = new HttpRequestMessage(HttpMethod.Get, _modelsEndpoint);
@@ -198,10 +219,15 @@ public class ApertusClient : IChatClient, IApertusApiClient, IDisposable
 			})
 			.ToList();
 	}
+	/// <inheritdoc/>
 	public object? GetService(Type serviceType, object? serviceKey = null) => null;
+	
+	/// <summary>
+	/// Disposes the HTTP client resources.
+	/// </summary>
 	public void Dispose()
 	{
-		throw new NotImplementedException();
+		_httpClient?.Dispose();
 	}
 	private HttpRequestMessage CreateChatRequest(object payload)
 	{
