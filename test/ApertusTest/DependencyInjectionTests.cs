@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
-using ApertusSharp;
+using ApertusSharp.Interfaces;
 
 namespace ApertusTest;
 

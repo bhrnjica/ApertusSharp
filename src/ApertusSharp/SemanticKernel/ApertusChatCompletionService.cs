@@ -1,7 +1,6 @@
-// Ignore Spelling: Apertus
 
 using Microsoft.Extensions.AI;
-using System.Runtime.CompilerServices;
+
 
 namespace ApertusSharp.SemanticKernel
 {

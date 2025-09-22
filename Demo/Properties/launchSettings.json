@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "ApertusDemo": {
-      "commandName": "Project",
-      "commandLineArgs": "stream simple listmodels"
-    }
-  }
-}

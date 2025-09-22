@@ -1,7 +1,7 @@
 ﻿// Ignore Spelling: Apertus
 
-using ApertusSharp;
 using ApertusSharp.Entities;
+using ApertusSharp.Interfaces;
 using Microsoft.Extensions.AI;
 using System;
 using System.Linq;

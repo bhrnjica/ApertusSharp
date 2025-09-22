@@ -1,6 +1,7 @@
 // Ignore Spelling: Apertus
 
 using ApertusSharp;
+using ApertusSharp.Interfaces;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -31,7 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
 			services.TryAddSingleton<IChatClient>(serviceProvider =>
 			{
 				var options = serviceProvider.GetRequiredService<IOptions<ApertusChatOptions>>().Value;
-				
+
 				if (string.IsNullOrEmpty(options.ApiKey))
 					throw new InvalidOperationException("ApiKey must be configured in ApertusChatOptions");
 
@@ -42,9 +43,11 @@ namespace Microsoft.Extensions.DependencyInjection
 					httpClient: options.HttpClient);
 			});
 
-			services.TryAddSingleton<IApertusApiClient>(serviceProvider => 
-				serviceProvider.GetRequiredService<IChatClient>() as IApertusApiClient 
+			services.TryAddSingleton<IApertusApiClient>(serviceProvider =>
+				serviceProvider.GetRequiredService<IChatClient>() as IApertusApiClient
 				?? throw new InvalidOperationException("IChatClient is not an IApertusApiClient"));
+
+			services.TryAddSingleton<ApertusClient>(sp => (ApertusClient)sp.GetRequiredService<IChatClient>());
 
 			return services;
 		}

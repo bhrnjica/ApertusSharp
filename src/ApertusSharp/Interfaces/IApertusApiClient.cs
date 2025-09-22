@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace ApertusSharp
+namespace ApertusSharp.Interfaces
 {
 	/// <summary>
 	/// Interface for Apertus-specific API operations beyond the standard IChatClient.

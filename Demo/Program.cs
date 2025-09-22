@@ -1,27 +1,123 @@
-﻿using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-
+﻿
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-
-using ApertusSharp.SemanticKernel;
+using System.IO;
 
 class Program
 {
 	static async Task Main(string[] args)
 	{
-		//await CreateApertusChatClient();
+		while (true)
+		{
+			Console.WriteLine("ApertusSharp - running Swiss-Ai on .NET. Choose an example to run:");
+			Console.WriteLine(Environment.NewLine);
+			Console.WriteLine("1. CreateApertusChatClient");
+			Console.WriteLine("2. UseBasicApertusFeatures");
+			Console.WriteLine("3. UseApertusFromServiceCollection");
+			Console.WriteLine("4. UseApertusInSemantickernel");
+			Console.WriteLine("5. UseApertusFromSpectreConsole");
+			Console.WriteLine("0. Exit");
+			Console.Write("Enter your choice: ");
+			var input = Console.ReadLine();
 
-		await UserBasicApertusFeatures(args);
+			switch (input)
+			{
+				case "1":
+					await CreateApertusChatClient();
+					break;
+				case "2":
+					await UseBasicApertusFeatures(args);
+					break;
+				case "3":
+					await UseApertusFromServiceCollection(args);
+					break;
+				case "4":
+					await UseApertusInSemantickernel(args);
+					break;
+				case "5":
+					await UseApertusFromSpectreConsole(args);
+					break;
+				case "0":
+					return;
+				default:
+					Console.WriteLine("Invalid choice. Please try again.");
+					break;
+			}
 
-		//await UseServiceCollectionWithApertusFeatures(args);
-
-		//await UserApertusInSemantickernel(args);
+			Console.WriteLine();
+		}
 	}
 
+
+	private static async Task UseBasicApertusFeatures(string[] args)
+	{
+		var apiKey = Environment.GetEnvironmentVariable("APERTUS_TOKEN");
+		if (string.IsNullOrEmpty(apiKey))
+		{
+			Console.WriteLine("❌ Please set the APERTUS_TOKEN environment variable.");
+			return;
+		}
+
+		var apertus = new ApertusClient(
+			apiKey: apiKey,
+			model: "swiss-ai/apertus-8b-instruct"
+		);
+
+		while (true)
+		{
+			Console.WriteLine("Choose an action:");
+			Console.WriteLine("1. List available models");
+			Console.WriteLine("2. Run chat (streaming)");
+			Console.WriteLine("3. Run chat (non-streaming)");
+			Console.WriteLine("0. Back to main menu");
+			Console.Write("Enter your choice: ");
+			var input = Console.ReadLine();
+
+			switch (input)
+			{
+				case "1":
+					var models = await apertus.ListModelsAsync();
+					Console.WriteLine("Available models:");
+					foreach (var model in models)
+					{
+						Console.WriteLine($"- {model.Id} (owned by {model.OwnedBy}, created at {model.Created})");
+					}
+					break;
+				case "2":
+					Console.Write("Enter your message: ");
+					var streamMsg = Console.ReadLine() ?? string.Empty;
+					var streamMessages = new List<ChatMessage>
+								{
+									new ChatMessage(ChatRole.User, streamMsg)
+								};
+					Console.Write("AI: ");
+					await foreach (var chunk in apertus.GetStreamingResponseAsync(streamMessages))
+					{
+						Console.Write(chunk);
+					}
+					Console.WriteLine("\nStreaming complete.");
+					break;
+				case "3":
+					Console.Write("Enter your message: ");
+					var msg = Console.ReadLine() ?? string.Empty;
+					var messages = new List<ChatMessage>
+								{
+									new ChatMessage(ChatRole.User, msg)
+								};
+					var response = await apertus.GetResponseAsync(messages);
+					Console.WriteLine("AI: " + response);
+					break;
+				case "0":
+					return;
+				default:
+					Console.WriteLine("Invalid choice. Please try again.");
+					break;
+			}
+
+			Console.WriteLine();
+		}
+	}
 	private static async Task CreateApertusChatClient()
 	{
 		var apiKey = Environment.GetEnvironmentVariable("APERTUS_TOKEN");
@@ -32,69 +128,13 @@ class Program
 		}
 		var apertus = new ApertusClient(model: "swiss-ai/apertus-8b-instruct", apiKey: apiKey);
 
-		await foreach (var stream in apertus.GenerateAsync("How are you today?"))
+		var msg = "How are you today?";
+		Console.WriteLine("User " + msg);
+		Console.Write("AI: ");
+		await foreach (var stream in apertus.GenerateAsync(msg))
 			Console.Write(stream.Text);
 	}
-
-	private static async Task UserBasicApertusFeatures(string[] args)
-	{
-		var apiKey = Environment.GetEnvironmentVariable("APERTUS_TOKEN");
-		if (string.IsNullOrEmpty(apiKey))
-		{
-			Console.WriteLine("❌ Please set the APERTUS_TOKEN environment variable.");
-			return;
-		}
-
-		var apertus = new ApertusClient(
-			apiKey: apiKey,//Obtain your Apertus app key from https://platform.publicai.co/
-			model: "swiss-ai/apertus-8b-instruct"
-		);
-
-		var msg = "Hello!";
-		Console.WriteLine("User: " + msg);
-		var messages = new List<ChatMessage>
-		{
-			new ChatMessage(ChatRole.User, msg)
-		};
-
-		if (args.Contains("stream"))
-		{
-			Console.Write("AI: ");
-
-			await foreach (var chunk in apertus.GetStreamingResponseAsync(messages))
-			{
-				Console.Write(chunk);
-			}
-			Console.WriteLine("\n Streaming complete.");
-		}
-		else
-		{
-			var response = await apertus.GetResponseAsync(messages);
-			Console.WriteLine("AI: " + response);
-		}
-
-		//List models
-		if (args.Contains("listmodels"))
-		{
-			var models = await apertus.ListModelsAsync();
-			Console.WriteLine("Available models:");
-			foreach (var model in models)
-			{
-				Console.WriteLine($"- {model.Id} (owned by {model.OwnedBy}, created at {model.Created})");
-			}
-		}
-		//Use simple chat interface
-		if (args.Contains("simple"))
-		{
-			msg = "Hello, how are you?";
-			Console.WriteLine("User: " + msg);
-			var response = await apertus.GetResponseAsync(msg);
-			Console.WriteLine("AI: " + response);
-		}
-
-
-	}
-	private static async Task UseServiceCollectionWithApertusFeatures(string[] args)
+	private static async Task UseApertusFromServiceCollection(string[] args)
 	{
 		var apiKey = Environment.GetEnvironmentVariable("APERTUS_TOKEN");
 		if (string.IsNullOrEmpty(apiKey))
@@ -111,29 +151,24 @@ class Program
 			ValidateScopes = true,
 			ValidateOnBuild = true
 		});
+
 		var apertus = provider.GetRequiredService<ApertusClient>();
+		var msg = "Hello from ServiceCollection!";
+		Console.WriteLine("User: " + msg);
 
 		var messages = new List<ChatMessage>
-					{
-						new ChatMessage(ChatRole.User, "Hello from ServiceCollection!")
-					};
-
-		if (args.Contains("stream"))
-		{
-			Console.Write("AI: ");
-			await foreach (var chunk in apertus.GetStreamingResponseAsync(messages))
 			{
-				Console.Write(chunk);
-			}
-			Console.WriteLine("\n Streaming complete.");
-		}
-		else
+				new ChatMessage(ChatRole.User, msg)
+			};
+
+		Console.Write("AI: ");
+		await foreach (var chunk in apertus.GetStreamingResponseAsync(messages))
 		{
-			var response = await apertus.GetResponseAsync(messages);
-			Console.WriteLine("AI: " + response);
+			Console.Write(chunk);
 		}
+		Console.WriteLine("\n Streaming complete.");
 	}
-	private static async Task UserApertusInSemantickernel(string[] args)
+	private static async Task UseApertusInSemantickernel(string[] args)
 	{
 		var apiKey = Environment.GetEnvironmentVariable("APERTUS_TOKEN");
 		if (string.IsNullOrEmpty(apiKey))
@@ -164,5 +199,46 @@ class Program
 		var result = await chat.GetResponseAsync(history);
 
 		Console.WriteLine("AI: " + result.Text);
+	}
+	private static async Task UseApertusFromSpectreConsole(string[] args)
+	{
+
+		var apiKey = Environment.GetEnvironmentVariable("APERTUS_TOKEN");
+		if (string.IsNullOrEmpty(apiKey))
+		{
+			Spectre.Console.AnsiConsole.MarkupLine("[red]❌ Please set the APERTUS_TOKEN environment variable.[/]");
+			return;
+		}
+
+		var apertus = new ApertusClient(
+			apiKey: apiKey,
+			model: "swiss-ai/apertus-8b-instruct"
+		);
+
+		var chatHistory = new List<ChatMessage>();
+		Spectre.Console.AnsiConsole.MarkupLine("[green]Apertus Chat Console. Type 'exit' to quit.[/]\n");
+
+		while (true)
+		{
+			var userInput = Spectre.Console.AnsiConsole.Ask<string>("[yellow]You:[/]");
+			if (string.Equals(userInput, "exit", StringComparison.OrdinalIgnoreCase))
+				break;
+
+			chatHistory.Add(new ChatMessage(ChatRole.User, userInput));
+
+			Spectre.Console.AnsiConsole.Markup("[blue]AI:[/] ");
+
+			await foreach (var chunk in apertus.GetStreamingResponseAsync(chatHistory))
+			{
+				if(chunk != null && chunk.Text != null)
+					Spectre.Console.AnsiConsole.Write(chunk.Text);
+			}
+
+			Spectre.Console.AnsiConsole.WriteLine();
+
+			// Add last AI response to history for context
+			var lastResponse = await apertus.GetResponseAsync(chatHistory);
+			chatHistory.Add(new ChatMessage(ChatRole.Assistant, lastResponse.Text));
+		}
 	}
 }
