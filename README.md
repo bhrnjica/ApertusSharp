@@ -1,6 +1,6 @@
 # ApertusSharp
 
-ApertusSharp is a modern .NET client for [Swis-AI](https://swis-ai.ch)'s Apertus LLM — built on `Microsoft.Extensions.AI` with full support for Semantic Kernel and custom chat pipelines. It’s designed for clean integration, simple usage, and flexible composition in .NET applications.
+ApertusSharp is a modern .NET client for [Swis-AI](https://www.swiss-ai.org/)'s Apertus LLM — built on `Microsoft.Extensions.AI` with full support for Semantic Kernel and custom chat pipelines. It’s designed for clean integration, simple usage, and flexible composition in .NET applications.
 
 ## ✨ Features
 
