@@ -20,13 +20,6 @@ Install via NuGet:
 dotnet add package ApertusSharp
 ```
 
-Or via Package Manager Console in Visual Studio:
-
-```
-Install-Package ApertusSharp
-```
-
-
 ## 🚀 Quick Start
 
 ### List available models:
@@ -61,9 +54,9 @@ await using var provider = services.BuildServiceProvider(new ServiceProviderOpti
 var apertus = provider.GetRequiredService<ApertusClient>();
 
 var messages = new List<ChatMessage>
-	{
-		new ChatMessage(ChatRole.User, "Hello from ServiceCollection!")
-	};
+{
+	new ChatMessage(ChatRole.User, "Hello from ServiceCollection!")
+};
 
 Console.Write("AI: ");
 await foreach (var chunk in apertus.GetStreamingResponseAsync(messages))
@@ -94,9 +87,9 @@ var msg = "How does Semantic Kernel work with Apertus?";
 Console.WriteLine("User: " + msg);
 
 var history = new List<ChatMessage>
-    {
-        new ChatMessage(ChatRole.User, msg)
-    };
+{
+	new ChatMessage(ChatRole.User, msg)
+};
 
 var result = await chat.GetResponseAsync(history);
 
@@ -149,7 +142,7 @@ Console.WriteLine(response);
 
 ## 📚 Documentation
 
-- [Swis-AI Apertus API](https://platform.publicai.co/api)
+- [PublicAI API](https://platform.publicai.co/docs)
 - [.NET AI SDK](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.ai)
 - [Semantic Kernel](https://aka.ms/semantic-kernel)
 
